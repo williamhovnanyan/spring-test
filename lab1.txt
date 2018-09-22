@@ -1,0 +1,7 @@
+Public repository on bitbucket:
+https://laory@bitbucket.org/laory/spring-course.git
+
+Web endpoint:
+https://bitbucket.org/laory/spring-course
+
+create table if not exists users(username varchar_ignorecase(50) not null primary key, password varchar_ignorecase(50) not null, enabled boolean not null);
