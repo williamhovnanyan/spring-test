@@ -46,7 +46,7 @@ public class BookingController {
         this.auditoriumService = auditoriumService;
     }
 
-    @RequestMapping(value = "/ticket/price", method = RequestMethod.GET)
+    @RequestMapping(value = "/tickets/price", method = RequestMethod.GET)
     public String getTicketPrice(@RequestParam("event") String event,
                                  @RequestParam("auditorium") String auditorium,
                                  @RequestParam("eventDate")  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime localDateTime,
@@ -64,7 +64,20 @@ public class BookingController {
         return "ticket-price";
     }
 
-    @RequestMapping(value = "/ticket", method = RequestMethod.POST, produces = "application/json")
+
+    @RequestMapping(value = "/tickets", method = RequestMethod.GET)
+    public String getTicketsForEvent(@RequestParam("event") String eventName,
+                                     @RequestParam("auditorium") String auditorium,
+                                     @RequestParam("eventDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime localDateTime,
+                                     @ModelAttribute("model") ModelMap model) {
+        List<Ticket> tickets = bookingService.getTicketsForEvent(eventName, auditorium, localDateTime);
+
+        model.addAttribute("tickets", tickets);
+
+        return "ticket-list";
+    }
+
+    @RequestMapping(value = "/tickets", method = RequestMethod.POST)
     public String bookTicket(@RequestParam("userID") Long userID,
                              @RequestParam("event") String eventName,
                              @RequestParam("auditorium") String auditoriumName,
@@ -89,17 +102,29 @@ public class BookingController {
         return "ticket";
     }
 
-    @RequestMapping(value = "/tickets", method = RequestMethod.GET)
-    public String getTicketsForEvent(@RequestParam("event") String eventName,
-                                     @RequestParam("auditorium") String auditorium,
-                                     @RequestParam("eventDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime localDateTime,
-                                     @ModelAttribute("model") ModelMap model) {
-        List<Ticket> tickets = bookingService.getTicketsForEvent(eventName, auditorium, localDateTime);
 
-        model.addAttribute("tickets", tickets);
+    @RequestMapping(value = "/tickets", method = RequestMethod.POST, produces = "application/json")
+    public Ticket bookTicket(@RequestParam("userID") Long userID,
+                             @RequestParam("event") String eventName,
+                             @RequestParam("auditorium") String auditoriumName,
+                             @RequestParam("eventDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime localDateTime,
+                             @RequestParam("seats") List<Integer> seats) {
+        String email = ((org.springframework.security.core.userdetails.User) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal()).getUsername();
 
-        return "ticket-list";
+        User user = userService.getById(userID);
+        if(!user.getEmail().equals(email)) {
+            throw new AccessControlException(String.format("Booking can be performed only by the [%s] account owner", user.getEmail()));
+        }
+
+        double ticketPrice = bookingService.getTicketPrice(eventName, auditoriumName, localDateTime, seats, user);
+        Event event = eventService.getEvent(eventName, auditoriumService.getByName(auditoriumName), localDateTime);
+
+        return bookingService.bookTicket(user, new Ticket(event, localDateTime, seats, user, ticketPrice));
     }
+
 
     @RequestMapping(value = "/tickets", method = RequestMethod.GET, headers = "Accept=application/pdf")
     public ModelAndView getTicketsForEventAsPDF(@RequestParam("event") String eventName,

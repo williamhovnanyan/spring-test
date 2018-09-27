@@ -19,9 +19,10 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = Logger.getLogger(GlobalExceptionHandler.class.getName());
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler({Exception.class, RuntimeException.class})
     public ModelAndView handleIOException(HttpServletRequest req,
                                           Exception e) {
+
         logger.log(Level.SEVERE, "Exception handler executed");
         ModelAndView mav = new ModelAndView("error");
         mav.addObject("exception", e);

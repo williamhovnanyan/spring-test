@@ -40,6 +40,9 @@ public class DbSessionFactory {
     @Value("${hibernate.create-script.loc}")
     private String postConstructScriptLocation;
 
+    @Value("${hibernate.init-script.loc}")
+    private String dbInitScriptLocation;
+
     @Bean
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean localSessionFactoryBean = new LocalSessionFactoryBean();
@@ -50,6 +53,7 @@ public class DbSessionFactory {
             setProperty("hibernate.hbm2ddl.auto", hbm2ddlAuto);
             setProperty("javax.persistence.schema-generation.create-source", "script");
             setProperty("javax.persistence.schema-generation.create-script-source", postConstructScriptLocation);
+            setProperty("javax.persistence.sql-load-script-source", dbInitScriptLocation);
         }});
         localSessionFactoryBean.setMappingResources("/mappings/auditorium.hbm.xml", "/mappings/event.hbm.xml",
                                                     "/mappings/ticket.hbm.xml", "/mappings/user.hbm.xml",

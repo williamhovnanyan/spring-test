@@ -12,6 +12,7 @@ import beans.services.discount.DiscountStrategy;
 import beans.services.discount.TicketsStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -137,5 +138,10 @@ public class TestBookingServiceConfiguration {
     public BookingService bookingServiceImpl() {
         return new BookingServiceImpl(eventServiceImpl(), auditoriumServiceImpl(), userServiceImpl(),
                                       discountBookingServiceImpl(), bookingBookingDAO(), 1, 2, 1.2, 1);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
